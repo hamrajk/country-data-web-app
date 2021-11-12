@@ -1,5 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+const api_key = process.env.REACT_APP_API_KEY;
+
+const WeatherDisplay = ({ countryToShow }) => {
+  const [weatherData, setWeatherData] = useState([]);
+  const hasFetchedData = useRef(false);
+  const capital = countryToShow[0].capital;
+
+  useEffect(() => {
+    if (hasFetchedData.current === false) {
+      console.log("effect");
+      axios
+        .get(
+          "http://api.weatherstack.com/current?access_key=" +
+            api_key +
+            "&query=" +
+            capital
+        )
+        .then((response) => {
+          console.log("promise fulfilled");
+          setWeatherData(response.data);
+          hasFetchedData.current = true;
+        });
+    }
+  }, [capital]);
+  console.log(weatherData);
+  console.log(capital);
+  if (weatherData.length !== 0) {
+    return (
+      <div>
+        <h3>Weather in {weatherData.location.name}</h3>
+        <p>
+          <b>temperature:</b> {weatherData.current.temperature} celcius
+        </p>
+        <br />
+        <img
+          src={weatherData.current.weather_icons[0]}
+          alt="Weather forecast"
+        ></img>
+        <p>
+          <b>wind: </b>
+          {weatherData.current.wind_speed} mph direction{" "}
+          {weatherData.current.wind_dir}
+        </p>
+      </div>
+    );
+  } else return null;
+};
 
 const DetailDisplay = ({ countriesToShow }) => {
   const languageList = [];
@@ -18,7 +65,8 @@ const DetailDisplay = ({ countriesToShow }) => {
       <p>Population: {countriesToShow[0].population}</p>
       <h3>Languages</h3>
       <div>{languageDisplay}</div>
-      <div>{countriesToShow[0].flag}</div>
+      <br />
+      <img src={countriesToShow[0].flags.png} alt="this is a flag"></img>
     </div>
   );
 };
@@ -54,6 +102,7 @@ const CountryDisplay = ({ countriesToShow, newSearch, countries }) => {
       <div>
         <DetailDisplay countriesToShow={countryToShow} />
         <button onClick={() => setShow(false)}>Return</button>
+        <WeatherDisplay countryToShow={countryToShow} />
       </div>
     );
   }
@@ -68,6 +117,7 @@ const CountryDisplay = ({ countriesToShow, newSearch, countries }) => {
     return (
       <div>
         <DetailDisplay countriesToShow={countriesToShow} />
+        <WeatherDisplay countryToShow={countriesToShow} />
       </div>
     );
   }
